@@ -39,8 +39,7 @@ setup(
 
     install_requires=[
         'requests',
-        'prometheus-client',
-        'statsmetrics'
+        'prometheus-client'
     ],
 
     entry_points={
