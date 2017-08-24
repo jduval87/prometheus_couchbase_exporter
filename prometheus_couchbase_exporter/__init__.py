@@ -1,6 +1,5 @@
 from prometheus_client import start_http_server
 from prometheus_client.core import CounterMetricFamily, GaugeMetricFamily, REGISTRY
-from statsmetrics import couchbase as couchbase_metrics
 
 from operator import getitem
 from requests.auth import HTTPBasicAuth
@@ -8,11 +7,11 @@ import json, requests, sys, time, os, ast, signal, re, argparse
 
 class CouchbaseCollector(object):
     METRIC_PREFIX = 'couchbase_'
-    metrics = couchbase_metrics.get_metrics()
     gauges = {}
 
-    def __init__(self, target):
+    def __init__(self, target, metrics):
         self.BASE_URL = target.rstrip("/")
+        self.metrics = metrics
 
     """
     Split dots in metric name and search for it in obj dict
@@ -95,10 +94,11 @@ class CouchbaseCollector(object):
 Parse optional arguments
 :couchase_host:port
 :port
+:metrics_file
 """
 def parse_args():
     parser = argparse.ArgumentParser(
-        description='couchbase exporter args couchbase address and port'
+        description='couchbase exporter args couchbase address exposed port, and metrics file'
     )
     parser.add_argument(
         '-c', '--couchbase',
@@ -115,17 +115,41 @@ def parse_args():
         help='Listen to this port',
         default=9119
     )
+    parser.add_argument(
+        '-f', '--metrics-file',
+        metavar='metrics_file',
+        required=False,
+        help='JSON file defining metrics to collect',
+        default='metrics.json'
+    )
     return parser.parse_args()
+
+"""
+Load metrics from JSON file
+:filename JSON file
+"""
+def load_metrics(filename):
+    metrics = {}
+    try:
+        fd = open(filename, 'r')
+        metrics = json.load(fd)
+        fd.close()
+    except:
+        print 'COULD NOT LOAD:', os.path.abspath(filename)
+        print 'isfile:', os.path.isfile(filename)
+        raise
+    return metrics
 
 #if __name__ == '__main__':
 def main():
-	try:
-		args = parse_args()
-		port = int(args.port)
-		REGISTRY.register(CouchbaseCollector(args.couchbase))
-		start_http_server(port)
-		print "Serving at port: ", port
-		while True: time.sleep(1)
-	except KeyboardInterrupt:
-		print(" Interrupted")
-		exit(0)
+    try:
+        args = parse_args()
+        port = int(args.port)
+        metrics = load_metrics(args.metrics_file)
+        REGISTRY.register(CouchbaseCollector(args.couchbase, metrics))
+        start_http_server(port)
+        print "Serving at port: ", port
+        while True: time.sleep(1)
+    except KeyboardInterrupt:
+        print(" Interrupted")
+        exit(0)
