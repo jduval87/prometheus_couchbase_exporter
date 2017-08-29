@@ -26,6 +26,11 @@
     "nodes": {
         "url": "/pools/nodes/",
         "metrics": [
+            {"name":"uptime","id":"uptime","suffix":"seconds","labels":["name","hostname", "status", "version", "os"]},
+            {"name":"memoryTotal","id":"memoryTotal","suffix":"bytes","labels":["name","hostname"]},
+            {"name":"memoryFree","id":"memoryFree","suffix":"bytes","labels":["name","hostname"]},
+            {"name":"mcdMemoryReserved","id":"mcdMemoryReserved","suffix":"bytes","labels":["name","hostname"]},
+            {"name":"mcdMemoryAllocated","id":"mcdMemoryAllocated","suffix":"bytes","labels":["name","hostname"]},
             {"name":"systemStats.cpu_utilization_rate","id":"systemStats.cpu_utilization_rate","suffix":"percent","labels":["name","hostname"]},
             {"name":"systemStats.swap_total","id":"systemStats.swap_total","suffix":"bytes","labels":["name","hostname"]},
             {"name":"systemStats.swap_used","id":"systemStats.swap_used","suffix":"bytes","labels":["name","hostname"]},

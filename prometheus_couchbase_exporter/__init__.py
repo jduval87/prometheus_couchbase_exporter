@@ -56,6 +56,8 @@ class CouchbaseCollector(object):
         if metric_value is not False:
             if isinstance(metric_value, list):
                 metric_value = sum(metric_value) / float(len(metric_value))
+            elif isinstance(metric_value, basestring):
+                metric_value = float(metric_value)
             if not metric_id in self.gauges:
                 self.gauges[metric_id] = GaugeMetricFamily('%s_%s' % (metric_name, metric_id), '%s' % metric_id, value=None, labels=metrics['labels'])
             self.gauges[metric_id].add_metric(gauges, value=metric_value)
@@ -70,7 +72,7 @@ class CouchbaseCollector(object):
             elif key == 'nodes':
                 for node in couchbase_data['nodes']:
                     for metrics in values['metrics']:
-                        self._add_metrics(metrics, self.METRIC_PREFIX + 'node', [node['hostname']], node)
+                        self._add_metrics(metrics, self.METRIC_PREFIX + 'node', [node[label] for label in metrics['labels'] if label != 'name'], node)
             elif key == 'buckets':
                 for bucket in couchbase_data:
                     for metrics in values['metrics']:
