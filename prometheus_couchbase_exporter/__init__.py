@@ -146,8 +146,8 @@ def load_metrics(filename):
         metrics = json.load(fd)
         fd.close()
     except:
-        print 'COULD NOT LOAD:', os.path.abspath(filename)
-        print 'isfile:', os.path.isfile(filename)
+        print('COULD NOT LOAD:', os.path.abspath(filename))
+        print('isfile:', os.path.isfile(filename))
         raise
     return metrics
 
@@ -159,7 +159,7 @@ def main():
         metrics = load_metrics(args.metrics_file)
         REGISTRY.register(CouchbaseCollector(args.couchbase, metrics))
         start_http_server(port)
-        print "Serving at port: ", port
+        print("Serving at port: ", port)
         while True: time.sleep(1)
     except KeyboardInterrupt:
         print(" Interrupted")
