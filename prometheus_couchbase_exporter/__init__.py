@@ -4,6 +4,7 @@ from prometheus_client.core import CounterMetricFamily, GaugeMetricFamily, REGIS
 from operator import getitem
 from requests.auth import HTTPBasicAuth
 import json, requests, sys, time, os, ast, signal, re, argparse
+from functools import reduce
 
 class CouchbaseCollector(object):
     METRIC_PREFIX = 'couchbase_'
@@ -56,7 +57,7 @@ class CouchbaseCollector(object):
         if metric_value is not False:
             if isinstance(metric_value, list):
                 metric_value = sum(metric_value) / float(len(metric_value))
-            elif isinstance(metric_value, basestring):
+            elif isinstance(metric_value, str):
                 metric_value = float(metric_value)
             if not metric_id in self.gauges:
                 self.gauges[metric_id] = GaugeMetricFamily('%s_%s' % (metric_name, metric_id), '%s' % metric_id, value=None, labels=metrics['labels'])
@@ -93,12 +94,12 @@ class CouchbaseCollector(object):
     """
     def collect(self):
         self._clear_gauges()
-        for api_key,api_values in self.metrics.items():
+        for api_key,api_values in list(self.metrics.items()):
             # Request data for each url
             couchbase_data = self._request_data(self.BASE_URL + api_values['url'])
             self._collect_metrics(api_key, api_values, couchbase_data)
 
-        for gauge_name, gauge in self.gauges.items():
+        for gauge_name, gauge in list(self.gauges.items()):
             yield gauge
 
 """
@@ -146,8 +147,8 @@ def load_metrics(filename):
         metrics = json.load(fd)
         fd.close()
     except:
-        print 'COULD NOT LOAD:', os.path.abspath(filename)
-        print 'isfile:', os.path.isfile(filename)
+        print('COULD NOT LOAD:', os.path.abspath(filename))
+        print('isfile:', os.path.isfile(filename))
         raise
     return metrics
 
@@ -159,7 +160,7 @@ def main():
         metrics = load_metrics(args.metrics_file)
         REGISTRY.register(CouchbaseCollector(args.couchbase, metrics))
         start_http_server(port)
-        print "Serving at port: ", port
+        print("Serving at port: ", port)
         while True: time.sleep(1)
     except KeyboardInterrupt:
         print(" Interrupted")
